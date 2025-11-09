@@ -91,7 +91,7 @@ class MultiScaleCoarseClassifier(nn.Module):
     for improved anatomical localization.
     """
     
-    def __init__(self, num_regions=3, dropout_rate=0.3):
+    def __init__(self, num_regions=3, dropout_rate=0.3, region_names=None):
         super(MultiScaleCoarseClassifier, self).__init__()
         
         self.num_regions = num_regions
@@ -131,7 +131,11 @@ class MultiScaleCoarseClassifier(nn.Module):
             nn.Linear(64, num_regions)
         )
         
-        self.region_names = {0: 'brain', 1: 'abdomen', 2: 'chest'}
+        # Region mapping - use provided mapping or default
+        if region_names is None:
+            self.region_names = {0: 'brain', 1: 'abdomen', 2: 'chest'}
+        else:
+            self.region_names = region_names
     
     def forward(self, x):
         # Full resolution path

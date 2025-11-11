@@ -6,6 +6,7 @@ Region-specific classifiers for disease detection
 import torch
 import torch.nn as nn
 from .base_model import Base3DCNN, Enhanced3DCNN
+from .cnn_3d_models import get_3d_model
 
 
 class FinePathologyClassifier(nn.Module):
@@ -18,26 +19,35 @@ class FinePathologyClassifier(nn.Module):
     Args:
         region_name (str): Anatomical region ('brain', 'abdomen', 'chest')
         num_pathologies (int): Number of pathology classes for this region
-        architecture (str): Model architecture ('base' or 'enhanced')
+        architecture (str): Model architecture ('base', 'enhanced', 'resnet18_3d', 
+                           'resnet34_3d', 'resnet50_3d', 'densenet121_3d', 'efficientnet3d_b0')
         dropout_rate (float): Dropout rate
     """
     
-    def __init__(self, region_name, num_pathologies, architecture='base', dropout_rate=0.3):
+    def __init__(self, region_name, num_pathologies, architecture='resnet18_3d', dropout_rate=0.3):
         super(FinePathologyClassifier, self).__init__()
         
         self.region_name = region_name
         self.num_pathologies = num_pathologies
         self.architecture = architecture
         
+        # Select model architecture
         if architecture == 'enhanced':
             self.model = Enhanced3DCNN(
                 in_channels=1,
                 num_classes=num_pathologies,
                 dropout_rate=dropout_rate
             )
-        else:
+        elif architecture == 'base':
             self.model = Base3DCNN(
                 in_channels=1,
+                num_classes=num_pathologies,
+                dropout_rate=dropout_rate
+            )
+        else:
+            # Use advanced 3D models (ResNet, DenseNet, EfficientNet)
+            self.model = get_3d_model(
+                model_name=architecture,
                 num_classes=num_pathologies,
                 dropout_rate=dropout_rate
             )
@@ -79,12 +89,12 @@ class RegionSpecificPathologyNetwork(nn.Module):
     allowing independent training and inference for each region.
     """
     
-    def __init__(self, region_configs, architecture='base', dropout_rate=0.3):
+    def __init__(self, region_configs, architecture='resnet18_3d', dropout_rate=0.3):
         """
         Args:
             region_configs (dict): Dict mapping region names to number of pathologies
                 Example: {'brain': 5, 'abdomen': 8, 'chest': 6}
-            architecture (str): Architecture type
+            architecture (str): Architecture type ('base', 'enhanced', 'resnet18_3d', etc.)
             dropout_rate (float): Dropout rate
         """
         super(RegionSpecificPathologyNetwork, self).__init__()
@@ -119,4 +129,3 @@ class RegionSpecificPathologyNetwork(nn.Module):
     def get_classifier(self, region_name):
         """Get classifier for specific region."""
         return self.classifiers.get(region_name)
-

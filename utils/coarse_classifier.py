@@ -6,6 +6,7 @@ Classifies images into anatomical regions (brain, abdomen, chest)
 import torch
 import torch.nn as nn
 from .base_model import Base3DCNN, Enhanced3DCNN
+from .cnn_3d_models import get_3d_model
 
 
 class CoarseAnatomicalClassifier(nn.Module):
@@ -16,26 +17,35 @@ class CoarseAnatomicalClassifier(nn.Module):
     a medical image belongs to, mimicking the first step of radiological analysis.
     
     Args:
-        architecture (str): Model architecture to use ('base' or 'enhanced')
+        architecture (str): Model architecture ('base', 'enhanced', 'resnet18_3d', 
+                           'resnet34_3d', 'resnet50_3d', 'densenet121_3d', 'efficientnet3d_b0')
         num_regions (int): Number of anatomical regions (default: 3)
         dropout_rate (float): Dropout rate (default: 0.3)
     """
     
-    def __init__(self, architecture='base', num_regions=3, dropout_rate=0.3, region_names=None):
+    def __init__(self, architecture='resnet18_3d', num_regions=3, dropout_rate=0.3, region_names=None):
         super(CoarseAnatomicalClassifier, self).__init__()
         
         self.num_regions = num_regions
         self.architecture = architecture
         
+        # Select model architecture
         if architecture == 'enhanced':
             self.model = Enhanced3DCNN(
                 in_channels=1,
                 num_classes=num_regions,
                 dropout_rate=dropout_rate
             )
-        else:
+        elif architecture == 'base':
             self.model = Base3DCNN(
                 in_channels=1,
+                num_classes=num_regions,
+                dropout_rate=dropout_rate
+            )
+        else:
+            # Use advanced 3D models (ResNet, DenseNet, EfficientNet)
+            self.model = get_3d_model(
+                model_name=architecture,
                 num_classes=num_regions,
                 dropout_rate=dropout_rate
             )
@@ -83,5 +93,3 @@ class CoarseAnatomicalClassifier(nn.Module):
     def get_region_name(self, region_idx):
         """Get region name from index."""
         return self.region_names.get(region_idx, 'unknown')
-
-

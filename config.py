@@ -17,7 +17,17 @@ DATA_CONFIG = {
 
 # Model architecture configuration
 MODEL_CONFIG = {
-    'architecture': 'base',  # 'base' or 'enhanced'
+    # Available architectures:
+    # - 'base': Lightweight Base3DCNN (~0.9M params)
+    # - 'enhanced': Enhanced3DCNN with residual blocks
+    # - 'resnet18_3d': ResNet-18 (3D) - Recommended default (~33M params)
+    # - 'resnet34_3d': ResNet-34 (3D) - More capacity (~63M params)
+    # - 'resnet50_3d': ResNet-50 (3D) - Maximum performance (~46M params)
+    # - 'densenet121_3d': DenseNet-121 (3D) - Best for limited data (~5.6M params)
+    # - 'efficientnet3d_b0': EfficientNet-B0 (3D) - Most efficient (~1.2M params)
+    'architecture': 'resnet18_3d',  # Default: ResNet-18 (3D)
+    'coarse_architecture': 'resnet18_3d',  # Architecture for coarse (Stage 1)
+    'fine_architecture': 'resnet18_3d',    # Architecture for fine (Stage 2)
     'dropout_rate': 0.3,
     'use_subtypes': False,
 }
